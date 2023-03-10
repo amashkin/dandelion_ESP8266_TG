@@ -3,6 +3,7 @@
 #include <UniversalTelegramBot.h>
 
 #include "keepAss.h"
+#include "danLogic.h"
 
 const unsigned long BOT_MTBS = 1000; // mean time between scan messages
 
@@ -18,28 +19,39 @@ void handleNewMessages(int numNewMessages) {
   String answer;
   for (int i = 0; i < numNewMessages; i++)   {
     telegramMessage &msg = bot.messages[i];
-    Serial.println("Received " + msg.text);
+    Serial.println("Received command" + msg.text);
+    Serial.println("Received fromID" + msg.from_id);
     if (msg.text == "/help")
       answer = "So you need _help_, uh? me too! use /start or /status";
     else if (msg.text == "/start")
       answer = "Welcome my new friend! You are the first *" + msg.from_name + "* I've ever met";
     else if (msg.text == "/status")
       answer = "All is good here, thanks for asking!";
-    else
+    else if (msg.text == "/run_fan" or msg.text == "/run_pump") 
+      answer = "Password requied";
+    else if (msg.text == "/run_fan?" && msg.from_id == BOT_TG_ID)
+      runSwitch01();
+    else if (msg.text == "/telemetry")
+      answer = getTelemetry();
+    else   
       answer = "Say what?";
 
     bot.sendMessage(msg.chat_id, answer, "Markdown");
   }
 }
 
+
+
 void bot_setup() {
   const String commands = F("["
                             "{\"command\":\"help\",  \"description\":\"Get bot usage help\"},"
                             "{\"command\":\"start\", \"description\":\"Message sent when you open a chat with a bot\"},"
-                            "{\"command\":\"status\",\"description\":\"Answer device current status\"}" // no comma on last command
+                            "{\"command\":\"status\",\"description\":\"Answer device current status\"}," 
+                            "{\"command\":\"run_fan\",\"description\":\"Run Fan\"},"
+                            "{\"command\":\"run_pump\",\"description\":\"Run Pump\"},"
+                            "{\"command\":\"telemetry\",\"description\":\"Get data\"}" // no comma on last command
                             "]");
   bot.setMyCommands(commands);
-  //bot.sendMessage("25235518", "Hola amigo!", "Markdown");
 }
 
 void ESP8266_TG_setup() {
