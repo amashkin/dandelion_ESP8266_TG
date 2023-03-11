@@ -82,7 +82,6 @@ void switch01Handle() {
     delay(lSwitch01_run);
     digitalWrite(PIN_D5, LOW);
     Serial.println("Switch 01 Off");
-  
   }
 }
 
@@ -112,7 +111,7 @@ String getTelemetry() {
   unsigned long currentMillis = millis();
   String sToNextSwitch01 = getReadableTime( currentMillis - previousMillisSwitch01 );
   String sToNextSwitch02 = getReadableTime( currentMillis - previousMillisSwitch02 );
-  String sStatus = "Fan: " + sToNextSwitch01 + " WPump: " + sToNextSwitch02 + " Hum: " + iHumidity + " Tem: " + iTemperature;
+  String sStatus = "*Fan*: " + sToNextSwitch01 + " \n*Water Pump*: " + sToNextSwitch02 + " \n*Humidity*: " + iHumidity + " \n*Temperature*: " + iTemperature;
   return sStatus;
 }
 
@@ -125,15 +124,14 @@ void danLogicHandle() {
 bool bSwitch01 = LOW;
 bool bSwitch02 = LOW;
 void runSwitch01() {
-  Serial.println("Fan. Switch 01 changed");
   bSwitch01 = !bSwitch01;
-  Serial.println(bSwitch01);
+  Serial.println("Fan. Switch 01 changed to " + bSwitch01);
   digitalWrite(PIN_D5, bSwitch01);
 }
 
 void runSwitch02() {
   Serial.println("Fan. Switch 02 changed");
-  runPumpOnce(); // It runs once to avoid issues with overload. Just to keep this action on the AndroidCloud
+  runPumpOnce(); // It runs once to avoid issues with overload. 
 }
 
 String getReadableTime(unsigned long lMillis) {
