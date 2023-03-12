@@ -4,6 +4,7 @@
 #define SWITCH_01 14 // ESP8266 D5 is GPIO14. Fan switch
 #define SWITCH_02 12 // ESP8266 D6 is GPIO12. Water pump switch
 
+#include <ArduinoOTA.h>
 #include "Adafruit_HTU21DF.h"
 
 const long lInterval = 60000;              // Updates HT readings every 60 seconds
@@ -101,12 +102,13 @@ void danLogicHandle() {
 
   if (now - previousMillisSwitch02 >= lSwitch02_interval) {
     previousMillisSwitch02 = now;
-    switchRun(SWITCH_01, lSwitch02_run);
+    switchRun(SWITCH_02, lSwitch02_run);
   }
 }
 
 String getTelemetry() {
   unsigned long now = millis();
+  String sHN   = ArduinoOTA.getHostname();
   String sNow = getReadableTime(now);
   String s01  = getReadableTime(now - previousMillisSwitch01);
   String s02  = getReadableTime(now - previousMillisSwitch02);
@@ -114,7 +116,7 @@ String getTelemetry() {
   float t  = getTemperature();
   float sm = getSoilMisture();
 
-  String sRet = "*Restarted:* " + sNow + "\n*Fan*: " + s01 + "\n*Water Pump*: " + s02 + "\n*Humidity*: " + h + "\n*Temperature*: " + t + " \n*Soil moisture*: "+ sm;
+  String sRet = "*DeviceID*: " + sHN + "\n*Restarted:* " + sNow + "\n*Fan*: " + s01 + "\n*Water Pump*: " + s02 + "\n*Humidity*: " + h + "\n*Temperature*: " + t + " \n*Soil moisture*: "+ sm;
   Serial.println("Telemetry:\n" + sRet);
   return sRet;
 }
