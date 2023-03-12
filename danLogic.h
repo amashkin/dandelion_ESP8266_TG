@@ -1,14 +1,10 @@
 #ifndef __DANLOGIC_H_
 #define __DANLOGIC_H_
 
+#define SWITCH_01 14 // ESP8266 D5 is GPIO14. Fan switch
+#define SWITCH_02 12 // ESP8266 D6 is GPIO12. Water pump switch
+
 #include "Adafruit_HTU21DF.h"
-
-#define PIN_D5 14  // ESP8266 D5 is GPIO14. Fan switch
-#define PIN_D6 12  // ESP8266 D6 is GPIO12. Water pump switch
-
-int iHumidity = 0;
-int iTemperature = 0;
-int iSensorValue = 0;
 
 const long lInterval = 60000;              // Updates HT readings every 60 seconds
 const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 30 min
@@ -20,125 +16,107 @@ unsigned long previousMillis = 0;          // will store last time T was updated
 unsigned long previousMillisSwitch01 = 0;
 unsigned long previousMillisSwitch02 = 0;
 
+void danLogicSetup();
 String getReadableTime(unsigned long lMillis);
+float getHumidity();
+float getTemperature();
+float getSoilMisture();
+void switchRun(int iPin, unsigned long lRunMillis);
+void danLogicHandle();
+String getTelemetry();
 
 Adafruit_HTU21DF htSensor = Adafruit_HTU21DF();  // Humidity\Tempearature Sencor 
 
 void danLogicSetup() {
-  pinMode(PIN_D5, OUTPUT);    // Initialise digital pin 14 as an output pin
-  pinMode(PIN_D6, OUTPUT);    // Initialise digital pin 12 as an output pin
+  pinMode(SWITCH_01, OUTPUT);    // Initialise digital pin 14 as an output pin
+  pinMode(SWITCH_02, OUTPUT);    // Initialise digital pin 12 as an output pin
 
-  digitalWrite(PIN_D5, LOW);  // Switch off in case of issues before restart
-  digitalWrite(PIN_D6, LOW);
-  digitalWrite(16, HIGH);
-   
   if (!htSensor.begin()) {
-    Serial.println("Couldn't find sensor!");
+    Serial.println("danLogicSetup(): Couldn't find sensor!");
   }
 }
 
-void htSensorHandle() {
-
-  unsigned long ulMillis = millis();
-  if (ulMillis - previousMillis >= lInterval) {
-
-    previousMillis = ulMillis;  // save the last time you updated the T value
-    
-    float newT = htSensor.readTemperature();
+float getHumidity() {
+    Serial.println("getHumidity()");
+    float h = htSensor.readHumidity();
     delay(5);
-    if (isnan(newT)) {  // if temperature read failed, don't change t value
-      Serial.println("Failed to read Temperature from HT sensor!");
+    if (isnan(h)) {  
+      Serial.println("getHumidity():Failed to read Humidity from HT sensor!");
+      return -1;
     } else {
-      iTemperature = newT;
-      Serial.print("Temerature: " + iTemperature);      
+      Serial.print("Humidity:  "+ (String)h);
+      return h;
     }
-
-    float newH = htSensor.readHumidity();
-    delay(5);
-    if (isnan(newH)) {  // if humidity read failed, don't change h value
-      Serial.println("Failed to read Humidity from HT sensor!");
-    } else {
-      iHumidity = newH;
-      Serial.print("Humidity:  "+ iHumidity);
-    }
-
-    Serial.println("Get ground humidity");
-    
-    analogWriteFreq(75000);
-    analogWrite(A0, 512);
-    // read the value from the sensor:
-    iSensorValue = analogRead(A0);
-
-    analogWrite(A0, 0);
-    
-    Serial.println("Soil moisture: " + iSensorValue);
-  }  
 }
 
-// Swithch ON Fan at D5 every lSwitch01_interval for lSwitch01_run seconds
-void switch01Handle() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisSwitch01 >= lSwitch01_interval) {
-    previousMillisSwitch01 = currentMillis;
-    Serial.println("Switch 01 On");
-    digitalWrite(PIN_D5, HIGH);
-   
-    delay(lSwitch01_run);
-    digitalWrite(PIN_D5, LOW);
-    Serial.println("Switch 01 Off");
+float getTemperature() {
+    Serial.println("getTemperature()");
+    float t = htSensor.readTemperature();
+    delay(5);
+    if (isnan(t)) {  
+      Serial.println("getHumidity():Failed to read Temperature from HT sensor!");
+      return -1;
+    } else {
+      Serial.print("Humidity:  "+ (String)t);
+      return t;
+    }
+}
+
+float getSoilMisture() {
+  Serial.println("getSoilMisture()");
+    
+  analogWriteFreq(75000);
+  analogWrite(A0, 512);
+  // read the value from the sensor:
+  float f = analogRead(A0);
+  analogWrite(A0, 0);
+  Serial.println("Soil moisture: " + (String)f);
+
+  return f;
+}
+
+void switchRun(int iPin, unsigned long lRun) {
+  Serial.println("switchRun()");
+  Serial.println("switchRun():Switch " + (String)iPin + " On");
+  digitalWrite(iPin, HIGH);
+  delay(lRun);    //should be changed
+  digitalWrite(iPin, LOW);
+  Serial.println("switchRun():Switch " + (String)iPin + " Off");
+}
+
+void danLogicHandle() {
+  unsigned long now = millis();
+  if (now - previousMillis >= lInterval) {
+    previousMillis = now;                                      
+    float t =  getTemperature();
+    float h =  getHumidity();
+    float sm = getSoilMisture();
+    // sendTelemetry();    
   }
-}
 
-void runPumpOnce() {
-  Serial.println("Water pump. Switch 02 On");
- 
-  digitalWrite(PIN_D6, HIGH);
-  delay(lSwitch02_run);
-  digitalWrite(PIN_D6, LOW);
- 
-  Serial.println("Water pump. Switch 02 Off");
-}
+  if (now - previousMillisSwitch01 >= lSwitch01_interval) {
+    previousMillisSwitch01 = now;    
+    switchRun(SWITCH_01, lSwitch01_run);                                           
+  }
 
-// Swithch on D6 for lSwitch02_run seconds
-// Run water pump periodicaly
-void switch02Handle() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousMillisSwitch02 >= lSwitch02_interval) {
-    previousMillisSwitch02 = currentMillis;
-    runPumpOnce();
+  if (now - previousMillisSwitch02 >= lSwitch02_interval) {
+    previousMillisSwitch02 = now;
+    switchRun(SWITCH_01, lSwitch02_run);
   }
 }
 
 String getTelemetry() {
-  unsigned long currentMillis = millis();
-  String sToNextSwitch01 = getReadableTime( currentMillis - previousMillisSwitch01 );
-  String sToNextSwitch02 = getReadableTime( currentMillis - previousMillisSwitch02 );
-  String sStatus = "*Fan*: " + sToNextSwitch01 + " \n*Water Pump*: " + sToNextSwitch02 + " \n*Humidity*: " + iHumidity + " \n*Temperature*: " + iTemperature + " \n*Soil moisture*: "+ iSensorValue;
-  return sStatus;
-}
+  unsigned long now = millis();
+  String sNow = getReadableTime(now);
+  String s01  = getReadableTime(now - previousMillisSwitch01);
+  String s02  = getReadableTime(now - previousMillisSwitch02);
+  float h  = getHumidity();
+  float t  = getTemperature();
+  float sm = getSoilMisture();
 
-void danLogicHandle() {
-  htSensorHandle();  // HT Sensor 
-  switch01Handle();  // Fan switch handle. Job to run Fan every X=10 min for Y=30 sec
-  switch02Handle();  // Water pump switch handle. Job to run every H=8h for S=20 sec
-}
-
-bool bSwitch01 = false;
-bool bSwitch02 = false;
-void runSwitch01() {
-  bSwitch01 = !bSwitch01;
-  Serial.print("Fan. Switch 01 changed to ") ;
-  if(bSwitch01)
-     Serial.println("HIGH");
-  else 
-     Serial.println("LOW");
-
-  digitalWrite(PIN_D5, bSwitch01);
-}
-
-void runSwitch02() {
-  Serial.println("Fan. Switch 02 changed");
-  runPumpOnce(); // It runs once to avoid issues with overload. 
+  String sRet = "*Restarted:* " + sNow + "\n*Fan*: " + s01 + "\n*Water Pump*: " + s02 + "\n*Humidity*: " + h + "\n*Temperature*: " + t + " \n*Soil moisture*: "+ sm;
+  Serial.println("Telemetry:\n" + sRet);
+  return sRet;
 }
 
 String getReadableTime(unsigned long lMillis) {

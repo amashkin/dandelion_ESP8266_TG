@@ -33,7 +33,7 @@ void handleNewMessages(int numNewMessages) {
     else if (msg.text == "/status")
       answer = "All is good here, thanks for asking!";
     else if (msg.text == "/fan" && msg.from_id == OM_TG_ID)
-      runSwitch01();
+      switchRun(SWITCH_01, lSwitch01_run);
     else if (msg.text == "/telemetry")
       answer = getTelemetry();
     else   
