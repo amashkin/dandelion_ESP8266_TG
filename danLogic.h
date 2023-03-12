@@ -6,6 +6,7 @@
 
 #include <ArduinoOTA.h>
 #include "Adafruit_HTU21DF.h"
+#include "ESP8266_TG.h"
 
 const long lInterval = 60000;              // Updates HT readings every 60 seconds
 const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 30 min
@@ -17,7 +18,7 @@ unsigned long previousMillis = 0;          // will store last time T was updated
 unsigned long previousMillisSwitch01 = 0;
 unsigned long previousMillisSwitch02 = 0;
 
-void danLogicSetup();
+void danLogicSetup(UniversalTelegramBot *b);
 String getReadableTime(unsigned long lMillis);
 float getHumidity();
 float getTemperature();
@@ -27,11 +28,12 @@ void danLogicHandle();
 String getTelemetry();
 
 Adafruit_HTU21DF htSensor = Adafruit_HTU21DF();  // Humidity\Tempearature Sencor 
+extern UniversalTelegramBot *getBot();
 
 void danLogicSetup() {
   pinMode(SWITCH_01, OUTPUT);    // Initialise digital pin 14 as an output pin
   pinMode(SWITCH_02, OUTPUT);    // Initialise digital pin 12 as an output pin
-
+ 
   if (!htSensor.begin()) {
     Serial.println("danLogicSetup(): Couldn't find sensor!");
   }
@@ -97,12 +99,15 @@ void danLogicHandle() {
 
   if (now - previousMillisSwitch01 >= lSwitch01_interval) {
     previousMillisSwitch01 = now;    
-    switchRun(SWITCH_01, lSwitch01_run);                                           
+    switchRun(SWITCH_01, lSwitch01_run);  
   }
 
   if (now - previousMillisSwitch02 >= lSwitch02_interval) {
     previousMillisSwitch02 = now;
     switchRun(SWITCH_02, lSwitch02_run);
+    UniversalTelegramBot *b = getBot();
+    if(b != NULL)    
+      b->sendMessage(OM_TG_ID, "Pump runs.", "Markdown");
   }
 }
 

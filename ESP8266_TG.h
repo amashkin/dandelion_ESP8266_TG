@@ -1,3 +1,6 @@
+#ifndef __ESP8266_TG_
+#define __ESP8266_TG_
+
 #include <ESP8266WiFi.h>
 #include <WiFiClientSecure.h>
 #include <UniversalTelegramBot.h>
@@ -15,6 +18,10 @@ unsigned long bot_lasttime; // last time messages' scan has been done
 X509List cert(TELEGRAM_CERTIFICATE_ROOT);
 WiFiClientSecure secured_client;
 UniversalTelegramBot bot(BOT_TOKEN, secured_client);
+UniversalTelegramBot *getBot() {
+  return &bot;
+}
+
 
 void handleNewMessages(int numNewMessages) {
   Serial.print("handleNewMessages ");
@@ -44,7 +51,7 @@ void handleNewMessages(int numNewMessages) {
     ////////////////////////
     if(msg.text == "/help" and isUserInList(msg.from_id)) {
       bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry", "Markdown");
-      bot.sendMessage(msg.chat_id, "/fan - sends command to run Fan. Run twice to get the same state. On/Off. It is just *to demonstate that it works*", "Markdown");
+      bot.sendMessage(msg.chat_id, "/fan - sends command to run Fan for predefined period.", "Markdown");
       bot.sendMessage(msg.chat_id, "/pump - sends command to run Water Pump. *You are not an Admin*. No access to send command to water pump. It demostrates next level of access to the system.  ", "Markdown");
       bot.sendMessage(msg.chat_id, "/telemetry - sends command to request telemetry and other available data. _Humidity_ and _Temperature_ sensors are disconnected for a while.", "Markdown");
     }   
@@ -53,10 +60,6 @@ void handleNewMessages(int numNewMessages) {
       bot.sendMessage(msg.chat_id, "You do not have access to send command /pump. Use /help to check command's list.", "Markdown");
     }
 
-
-// // //  if(msg.from_id == OT_TG_ID)
-  //    bot.sendMessage(OT_TG_ID, "Recived command: " + msg.text, "Markdown");
-    ////////////////////////
   }
 }
 
@@ -119,3 +122,4 @@ void ESP8266_TG_loop() {
     bot_lasttime = millis();
   }
 }
+#endif
