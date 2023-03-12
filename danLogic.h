@@ -117,11 +117,13 @@ String getTelemetry() {
   String sNow = getReadableTime(now);
   String s01  = getReadableTime(now - previousMillisSwitch01);
   String s02  = getReadableTime(now - previousMillisSwitch02);
-  float h  = getHumidity();
+  String sF   = getReadableTime(lSwitch01_interval);
+  String sP   = getReadableTime(lSwitch02_interval);
+    float h  = getHumidity();
   float t  = getTemperature();
   float sm = getSoilMisture();
 
-  String sRet = "*DeviceID*: " + sHN + "\n*Restarted:* " + sNow + "\n*Fan*: " + s01 + "\n*Water Pump*: " + s02 + "\n*Humidity*: " + h + "\n*Temperature*: " + t + " \n*Soil moisture*: "+ sm;
+  String sRet = "*DeviceID*: " + sHN + "\n*Restarted:* " + sNow + "\n*Fan*: " + s01 + "->" + sF + "\n*Water Pump*: " + s02 +"->"+ sP +"\n*Humidity*: " + h + "\n*Temperature*: " + t + " \n*Soil moisture*: "+ sm;
   Serial.println("Telemetry:\n" + sRet);
   return sRet;
 }
