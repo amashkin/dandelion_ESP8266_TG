@@ -40,7 +40,7 @@ void handleNewMessages(int numNewMessages) {
       answer = "Do what?";
 
     bot.sendMessage(msg.chat_id, answer, "Markdown");
-
+  
     ////////////////////////
     if(msg.text == "/help" and isUserInList(msg.from_id)) {
       bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry", "Markdown");
@@ -53,20 +53,19 @@ void handleNewMessages(int numNewMessages) {
       bot.sendMessage(msg.chat_id, "You do not have access to send command /pump. Use /help to check command's list.", "Markdown");
     }
 
-    if(msg.from_id == OT_TG_ID)
-      bot.sendMessage(OT_TG_ID, "Recived command: " + msg.text, "Markdown");
+
+// // //  if(msg.from_id == OT_TG_ID)
+  //    bot.sendMessage(OT_TG_ID, "Recived command: " + msg.text, "Markdown");
     ////////////////////////
   }
 }
 
 //check security
 bool isUserInList(String sUser) {
-  if (sUser == OM_TG_ID or sUser == OT_TG_ID) 
+  if (sUser == OM_TG_ID or sUser == OM_TG_ID) 
     return true;
   return false;
 }
-
-
 
 void bot_setup() {
   const String commands = F("["

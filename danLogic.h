@@ -8,15 +8,15 @@
 
 int iHumidity = 0;
 int iTemperature = 0;
+int iSensorValue = 0;
 
 const long lInterval = 60000;              // Updates HT readings every 60 seconds
 const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 30 min
 const long lSwitch01_run = 30000;          // Switch 01 switched on 30 sec
 const long lSwitch02_interval = 28800000;  // Switch 02 work interval 8 h
-const long lSwitch02_run = 25000;          // Switch 02 switched on 25 sec
+const long lSwitch02_run = 20000;          // Switch 02 switched on 20 sec
 
-unsigned long previousHMillis = 0;         // will store last time H was updated
-unsigned long previousTMillis = 0;         // will store last time T was updated
+unsigned long previousMillis = 0;          // will store last time T was updated
 unsigned long previousMillisSwitch01 = 0;
 unsigned long previousMillisSwitch02 = 0;
 
@@ -38,10 +38,11 @@ void danLogicSetup() {
 }
 
 void htSensorHandle() {
-  unsigned long currentMillis = millis();
-  if (currentMillis - previousTMillis >= lInterval) {
 
-    previousTMillis = currentMillis;  // save the last time you updated the T value
+  unsigned long ulMillis = millis();
+  if (ulMillis - previousMillis >= lInterval) {
+
+    previousMillis = ulMillis;  // save the last time you updated the T value
     
     float newT = htSensor.readTemperature();
     delay(5);
@@ -49,25 +50,28 @@ void htSensorHandle() {
       Serial.println("Failed to read Temperature from HT sensor!");
     } else {
       iTemperature = newT;
-
-      Serial.print("Temerature: ");      
-      Serial.println(newT);
+      Serial.print("Temerature: " + iTemperature);      
     }
-  }
-
-  if (currentMillis - previousHMillis >= lInterval) {
-
-    previousHMillis = currentMillis;  // save the last time you updated the T value
 
     float newH = htSensor.readHumidity();
     delay(5);
     if (isnan(newH)) {  // if humidity read failed, don't change h value
-      Serial.println("Failed to read humidity from HT sensor!");
+      Serial.println("Failed to read Humidity from HT sensor!");
     } else {
       iHumidity = newH;
-      Serial.print("Humidity: ");
-      Serial.println(newH);
+      Serial.print("Humidity:  "+ iHumidity);
     }
+
+    Serial.println("Get ground humidity");
+    
+    analogWriteFreq(75000);
+    analogWrite(A0, 512);
+    // read the value from the sensor:
+    iSensorValue = analogRead(A0);
+
+    analogWrite(A0, 0);
+    
+    Serial.println("Soil moisture: " + iSensorValue);
   }  
 }
 
@@ -87,14 +91,12 @@ void switch01Handle() {
 
 void runPumpOnce() {
   Serial.println("Water pump. Switch 02 On");
-  digitalWrite(PIN_D6, HIGH);
  
-  int iMills = millis();
+  digitalWrite(PIN_D6, HIGH);
   delay(lSwitch02_run);
   digitalWrite(PIN_D6, LOW);
-  Serial.println(millis()-iMills);
+ 
   Serial.println("Water pump. Switch 02 Off");
-
 }
 
 // Swithch on D6 for lSwitch02_run seconds
@@ -111,21 +113,26 @@ String getTelemetry() {
   unsigned long currentMillis = millis();
   String sToNextSwitch01 = getReadableTime( currentMillis - previousMillisSwitch01 );
   String sToNextSwitch02 = getReadableTime( currentMillis - previousMillisSwitch02 );
-  String sStatus = "*Fan*: " + sToNextSwitch01 + " \n*Water Pump*: " + sToNextSwitch02 + " \n*Humidity*: " + iHumidity + " \n*Temperature*: " + iTemperature;
+  String sStatus = "*Fan*: " + sToNextSwitch01 + " \n*Water Pump*: " + sToNextSwitch02 + " \n*Humidity*: " + iHumidity + " \n*Temperature*: " + iTemperature + " \n*Soil moisture*: "+ iSensorValue;
   return sStatus;
 }
 
 void danLogicHandle() {
   htSensorHandle();  // HT Sensor 
   switch01Handle();  // Fan switch handle. Job to run Fan every X=10 min for Y=30 sec
-  switch02Handle();  // Water pump switch handle. Job to run every Z=8h for S=25 sec
+  switch02Handle();  // Water pump switch handle. Job to run every H=8h for S=20 sec
 }
 
-bool bSwitch01 = LOW;
-bool bSwitch02 = LOW;
+bool bSwitch01 = false;
+bool bSwitch02 = false;
 void runSwitch01() {
   bSwitch01 = !bSwitch01;
-  Serial.println("Fan. Switch 01 changed to " + bSwitch01);
+  Serial.print("Fan. Switch 01 changed to ") ;
+  if(bSwitch01)
+     Serial.println("HIGH");
+  else 
+     Serial.println("LOW");
+
   digitalWrite(PIN_D5, bSwitch01);
 }
 
