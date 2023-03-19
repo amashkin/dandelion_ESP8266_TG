@@ -105,9 +105,13 @@ void danLogicHandle() {
   if (now - previousMillisSwitch02 >= lSwitch02_interval) {
     previousMillisSwitch02 = now;
     switchRun(SWITCH_02, lSwitch02_run);
-    UniversalTelegramBot *b = getBot();
-    if(b != NULL)    
-      b->sendMessage(OM_TG_ID, "Pump runs.", "Markdown");
+    UniversalTelegramBot *pBot = getBot();
+    if(pBot != NULL) {  
+      pBot->sendMessage(OM_TG_ID, "Pump runs.", "Markdown");
+      String sMsg = getTelemetry();
+      pBot->sendMessage(OM_TG_ID, sMsg, "Markdown");
+    } else 
+    Serial.println("Internal Error: void danLogicHandle()");
   }
 }
 
@@ -119,7 +123,7 @@ String getTelemetry() {
   String s02  = getReadableTime(now - previousMillisSwitch02);
   String sF   = getReadableTime(lSwitch01_interval);
   String sP   = getReadableTime(lSwitch02_interval);
-    float h  = getHumidity();
+  float h  = getHumidity();
   float t  = getTemperature();
   float sm = getSoilMisture();
 
@@ -145,7 +149,7 @@ String getReadableTime(unsigned long lMillis) {
   hours %= 24;
 
   if (days > 0) {
-    sReadableTime = String(days) + " ";
+    sReadableTime = String(days) + ":";
   }
 
   if (hours > 0) {
