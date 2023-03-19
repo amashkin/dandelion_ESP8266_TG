@@ -26,6 +26,7 @@ float getSoilMisture();
 void switchRun(int iPin, unsigned long lRunMillis);
 void danLogicHandle();
 String getTelemetry();
+void requestConfig();
 
 Adafruit_HTU21DF htSensor = Adafruit_HTU21DF();  // Humidity\Tempearature Sencor 
 extern UniversalTelegramBot *getBot();
@@ -37,6 +38,7 @@ void danLogicSetup() {
   if (!htSensor.begin()) {
     Serial.println("danLogicSetup(): Couldn't find sensor!");
   }
+  requestConfig();
 }
 
 float getHumidity() {
@@ -130,6 +132,15 @@ String getTelemetry() {
   String sRet = "*DeviceID*: " + sHN + "\n*Restarted:* " + sNow + "\n*Fan*: " + s01 + "->" + sF + "\n*Water Pump*: " + s02 +"->"+ sP +"\n*Humidity*: " + h + "\n*Temperature*: " + t + " \n*Soil moisture*: "+ sm;
   Serial.println("Telemetry:\n" + sRet);
   return sRet;
+}
+
+void requestConfig() {
+  UniversalTelegramBot *pBot = getBot();
+  if(pBot != NULL) {  
+    String sMsg = "*DeviceID*: " + ArduinoOTA.getHostname() + " started. Request Configuration."; 
+    pBot->sendMessage(OM_TG_ID, sMsg, "Markdown");
+  } else 
+    Serial.println("Internal Error: void danLogicHandle()");
 }
 
 String getReadableTime(unsigned long lMillis) {

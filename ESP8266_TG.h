@@ -36,7 +36,7 @@ void handleNewMessages(int numNewMessages) {
     if (msg.text == "/help")
       answer = "So you need _help_, uh? me too! use /start or /status";
     else if (msg.text == "/start")
-      answer = "Guten morgen my friend *" + msg.from_name + "*. Find what commands are available for you - send /help command";
+      answer = "Guten morgen my friend *" + msg.from_name + "*. Find what commands that available for you - send /help command";
     else if (msg.text == "/status")
       answer = "All is good here, thanks for asking!";
     else if (msg.text == "/fan" && msg.from_id == OM_TG_ID)
