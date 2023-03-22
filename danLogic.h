@@ -147,7 +147,8 @@ void requestConfig() {
 }
 
 String getConfig() {
-  String sConf = "*Telemetry*: " + getReadableTime(lInterval) +
+  String sConf = "*DeviceID*: " + ArduinoOTA.getHostname() + 
+               "\n*Telemetry*: " + getReadableTime(lInterval) +
                "\n*Switch 01*: " + getReadableTime(lSwitch01_interval) + 
                "\n*Switch 02*: " + getReadableTime(lSwitch02_interval);
   return sConf;
