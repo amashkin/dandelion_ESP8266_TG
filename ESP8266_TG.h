@@ -43,23 +43,21 @@ void handleNewMessages(int numNewMessages) {
       switchRun(SWITCH_01, lSwitch01_run);
     else if (msg.text == "/telemetry")
       answer = getTelemetry();
-    else   
+    else if  (msg.text == "/config")
+      answer = getConfig();
+    else
       answer = "Do what?";
 
     bot.sendMessage(msg.chat_id, answer, "Markdown");
   
     ////////////////////////
     if(msg.text == "/help" and isUserInList(msg.from_id)) {
-      bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry", "Markdown");
-      bot.sendMessage(msg.chat_id, "/fan - sends command to run Fan for predefined period.", "Markdown");
-      bot.sendMessage(msg.chat_id, "/pump - sends command to run Water Pump. *You are not an Admin*. No access to send command to water pump. It demostrates next level of access to the system.  ", "Markdown");
-      bot.sendMessage(msg.chat_id, "/telemetry - sends command to request telemetry and other available data. _Humidity_ and _Temperature_ sensors are disconnected for a while.", "Markdown");
+      bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry, /config", "Markdown");      
     }   
     
     if(msg.text == "/pump" and  isUserInList(msg.from_id)) {
       bot.sendMessage(msg.chat_id, "You do not have access to send command /pump. Use /help to check command's list.", "Markdown");
     }
-
   }
 }
 

@@ -8,7 +8,7 @@
 #include "Adafruit_HTU21DF.h"
 #include "ESP8266_TG.h"
 
-const long lInterval = 60000;              // Updates HT readings every 60 seconds
+const long lInterval = 3600000;              
 const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 30 min
 const long lSwitch01_run = 30000;          // Switch 01 switched on 30 sec
 const long lSwitch02_interval = 28800000;  // Switch 02 work interval 8 h
@@ -27,6 +27,8 @@ void switchRun(int iPin, unsigned long lRunMillis);
 void danLogicHandle();
 String getTelemetry();
 void requestConfig();
+void sendConfig();
+String getConfig();
 
 Adafruit_HTU21DF htSensor = Adafruit_HTU21DF();  // Humidity\Tempearature Sencor 
 extern UniversalTelegramBot *getBot();
@@ -93,10 +95,11 @@ void danLogicHandle() {
   unsigned long now = millis();
   if (now - previousMillis >= lInterval) {
     previousMillis = now;                                      
-    float t =  getTemperature();
-    float h =  getHumidity();
-    float sm = getSoilMisture();
-    // sendTelemetry();    
+    UniversalTelegramBot *pBot = getBot();
+    if(pBot != NULL) {  
+      String sMsg = getTelemetry();
+      pBot->sendMessage(OM_TG_ID, sMsg, "Markdown");
+    }   
   }
 
   if (now - previousMillisSwitch01 >= lSwitch01_interval) {
@@ -141,6 +144,20 @@ void requestConfig() {
     pBot->sendMessage(OM_TG_ID, sMsg, "Markdown");
   } else 
     Serial.println("Internal Error: void danLogicHandle()");
+}
+
+String getConfig() {
+  String sConf = "*Telemetry*: " + getReadableTime(lInterval) +
+               "\n*Switch 01*: " + getReadableTime(lSwitch01_interval) + 
+               "\n*Switch 02*: " + getReadableTime(lSwitch02_interval);
+  return sConf;
+}
+
+void sendConfig() {
+  UniversalTelegramBot *pBot = getBot();
+  if(pBot != NULL) {  
+    pBot->sendMessage(OM_TG_ID, getConfig(), "Markdown");
+  }
 }
 
 String getReadableTime(unsigned long lMillis) {
