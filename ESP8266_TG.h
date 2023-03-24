@@ -45,6 +45,10 @@ void handleNewMessages(int numNewMessages) {
       answer = getTelemetry();
     else if  (msg.text == "/config")
       answer = getConfig();
+    else if (msg.text == "/pumpPlus")
+      setPumpIntervalPlus();
+    else if (msg.text == "/pumpMinus")
+      setPumpIntervalMinus();
     else
       answer = "Do what?";
 
@@ -52,7 +56,7 @@ void handleNewMessages(int numNewMessages) {
   
     ////////////////////////
     if(msg.text == "/help" and isUserInList(msg.from_id)) {
-      bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry, /config", "Markdown");      
+      bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry, /config, /pumpPlus, /pumpMinus", "Markdown");      
     }   
     
     if(msg.text == "/pump" and  isUserInList(msg.from_id)) {

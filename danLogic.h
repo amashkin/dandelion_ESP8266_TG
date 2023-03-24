@@ -9,10 +9,11 @@
 #include "ESP8266_TG.h"
 
 const long lInterval = 3600000;              
-const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 30 min
+const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 10 min
 const long lSwitch01_run = 30000;          // Switch 01 switched on 30 sec
-const long lSwitch02_interval = 28800000;  // Switch 02 work interval 8 h
+      long lSwitch02_interval = 28800000; //36000000;  // Switch 02 work interval 8/10 h
 const long lSwitch02_run = 20000;          // Switch 02 switched on 20 sec
+const long lIncrement = 1800000;           // 30 min
 
 unsigned long previousMillis = 0;          // will store last time T was updated
 unsigned long previousMillisSwitch01 = 0;
@@ -29,6 +30,8 @@ String getTelemetry();
 void requestConfig();
 void sendConfig();
 String getConfig();
+void setPumpIntervalPlus() { lSwitch02_interval += lIncrement; }
+void setPumpIntervalMinus() { lSwitch02_interval -= lIncrement; }
 
 Adafruit_HTU21DF htSensor = Adafruit_HTU21DF();  // Humidity\Tempearature Sencor 
 extern UniversalTelegramBot *getBot();
@@ -180,11 +183,15 @@ String getReadableTime(unsigned long lMillis) {
   if (days > 0) {
     sReadableTime = String(days) + ":";
   }
+ 
+  if (hours < 10 && hours > 0) {
+    sReadableTime += "0";
+  }
 
   if (hours > 0) {
     sReadableTime += String(hours) + ":";
   }
-
+  
   if (minutes < 10) {
     sReadableTime += "0";
   }
