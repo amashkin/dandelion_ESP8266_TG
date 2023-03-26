@@ -6,8 +6,8 @@
 void setup() {
   Serial.begin(115200);
 
-  ESP8266_TG_setup();              // Telegram Events logic
   OTA_init();                      // danOTA.h Over The Air
+  ESP8266_TG_setup();              // Telegram Events logic
   danLogicSetup();                 // Data\Action logic
 }
 

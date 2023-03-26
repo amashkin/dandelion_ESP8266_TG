@@ -12,7 +12,7 @@
 bool isUserInList(String sUser);
 //
 
-const unsigned long BOT_MTBS = 1000; // mean time between scan messages
+const unsigned long BOT_MTBS = 2000; // mean time between scan messages
 
 unsigned long bot_lasttime; // last time messages' scan has been done
 X509List cert(TELEGRAM_CERTIFICATE_ROOT);
@@ -43,23 +43,27 @@ void handleNewMessages(int numNewMessages) {
       switchRun(SWITCH_01, lSwitch01_run);
     else if (msg.text == "/telemetry")
       answer = getTelemetry();
-    else if  (msg.text == "/config")
-      answer = getConfig();
-    else if (msg.text == "/pumpPlus")
+    else if (msg.text == "/pumpPlus") {
       setPumpIntervalPlus();
-    else if (msg.text == "/pumpMinus")
+      answer = getConfig()+ "\n\n/config, /pumpMinus, */pumpPlus*";
+    }
+    else if (msg.text == "/pumpMinus") {
       setPumpIntervalMinus();
+      answer = getConfig() + "\n\n/config, */pumpMinus*, /pumpPlus";
+    }
+    else if (msg.text == "/config")
+      answer = getConfig();
     else
       answer = "Do what?";
 
     bot.sendMessage(msg.chat_id, answer, "Markdown");
   
-    ////////////////////////
     if(msg.text == "/help" and isUserInList(msg.from_id)) {
-      bot.sendMessage(msg.chat_id, "You are in the list and some additional commands are *working for you*. /fan, /pump, /telemetry, /config, /pumpPlus, /pumpMinus", "Markdown");      
+      bot.sendMessage(msg.chat_id, " */fan*, /pump, */telemetry*, \n*/config*, /pumpPlus, /pumpMinus", "Markdown");      
     }   
     
     if(msg.text == "/pump" and  isUserInList(msg.from_id)) {
+      // Nobody has access to /pump. Just message 
       bot.sendMessage(msg.chat_id, "You do not have access to send command /pump. Use /help to check command's list.", "Markdown");
     }
   }
@@ -72,7 +76,7 @@ bool isUserInList(String sUser) {
   return false;
 }
 
-void bot_setup() {
+void bot_setupCommands() {
   const String commands = F("["
                             "{\"command\":\"help\",  \"description\":\"Get bot usage help\"},"
                             "{\"command\":\"start\", \"description\":\"Message sent when you open a chat with a bot\"},"
@@ -97,18 +101,7 @@ void ESP8266_TG_setup() {
   }
   Serial.print("\nWiFi connected. IP address: ");
   Serial.println(WiFi.localIP());
-
-  // Check NTP/Time, usually it is instantaneous and you can delete the code below.
-  Serial.print("Retrieving time: ");
-  time_t now = time(nullptr);
-  while (now < 24 * 3600) {
-    Serial.print(".");
-    delay(100);
-    now = time(nullptr);
-  }
-  Serial.println(now);
-
-  bot_setup();
+  bot_setupCommands();
 }
 
 void ESP8266_TG_loop() {
