@@ -13,6 +13,7 @@ bool isUserInList(String sUser);
 //
 
 const unsigned long BOT_MTBS = 2000; // mean time between scan messages
+const String sCmd = "\n\n*/fan*, /pump, */telemetry*, \n*/config*, /pumpPlus, /pumpMinus";
 
 unsigned long bot_lasttime; // last time messages' scan has been done
 X509List cert(TELEGRAM_CERTIFICATE_ROOT);
@@ -39,8 +40,10 @@ void handleNewMessages(int numNewMessages) {
       answer = "Guten morgen my friend *" + msg.from_name + "*. Find what commands that available for you - send /help command";
     else if (msg.text == "/status")
       answer = "All is good here, thanks for asking!";
-    else if (msg.text == "/fan" && msg.from_id == OM_TG_ID)
+    else if (msg.text == "/fan" && isUserInList(msg.from_id))
       switchRun(SWITCH_01, lSwitch01_run);
+    else if (msg.text == "/pump" && isUserInList(msg.from_id))
+      switchRun(SWITCH_02, 5000);
     else if (msg.text == "/telemetry")
       answer = getTelemetry();
     else if (msg.text == "/pumpPlus") {
@@ -59,13 +62,8 @@ void handleNewMessages(int numNewMessages) {
     bot.sendMessage(msg.chat_id, answer, "Markdown");
   
     if(msg.text == "/help" and isUserInList(msg.from_id)) {
-      bot.sendMessage(msg.chat_id, " */fan*, /pump, */telemetry*, \n*/config*, /pumpPlus, /pumpMinus", "Markdown");      
+      bot.sendMessage(msg.chat_id, sCmd, "Markdown");      
     }   
-    
-    if(msg.text == "/pump" and  isUserInList(msg.from_id)) {
-      // Nobody has access to /pump. Just message 
-      bot.sendMessage(msg.chat_id, "You do not have access to send command /pump. Use /help to check command's list.", "Markdown");
-    }
   }
 }
 
