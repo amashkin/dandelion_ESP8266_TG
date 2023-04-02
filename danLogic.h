@@ -12,8 +12,9 @@ const long lInterval = 3600000;
 const long lSwitch01_interval = 600000;    // Updates Switch 01 interval = 10 min
 const long lSwitch01_run = 30000;          // Switch 01 switched on 30 sec
       long lSwitch02_interval = 28800000; //36000000;  // Switch 02 work interval 8/10 h
-const long lSwitch02_run = 20000;          // Switch 02 switched on 20 sec
+      long lSwitch02_run = 20000;          // Switch 02 switched on 20 sec
 const long lIncrement = 1800000;           // 30 min
+const long lRunIncrement = 5000;           // 5 sec
 
 unsigned long previousMillis = 0;          // will store last time T was updated
 unsigned long previousMillisSwitch01 = 0;
@@ -32,6 +33,8 @@ void sendConfig();
 String getConfig();
 void setPumpIntervalPlus() { lSwitch02_interval += lIncrement; }
 void setPumpIntervalMinus() { lSwitch02_interval -= lIncrement; }
+void setPumpRunIntervalPlus() { lSwitch02_run += lRunIncrement; }
+void setPumpRunIntervalMinus() { lSwitch02_run -= lRunIncrement; }
 
 Adafruit_HTU21DF htSensor = Adafruit_HTU21DF();  // Humidity\Tempearature Sencor 
 extern UniversalTelegramBot *getBot();
@@ -115,11 +118,9 @@ void danLogicHandle() {
     switchRun(SWITCH_02, lSwitch02_run);
     UniversalTelegramBot *pBot = getBot();
     if(pBot != NULL) {  
-      pBot->sendMessage(OM_TG_ID, "Pump runs.", "Markdown");
-      String sMsg = getTelemetry();
-      pBot->sendMessage(OM_TG_ID, sMsg, "Markdown");
+      pBot->sendMessage(OM_TG_ID, "Pump runs.", "Markdown");     
     } else 
-    Serial.println("Internal Error: void danLogicHandle()");
+      Serial.println("Internal Error: void danLogicHandle()");
   }
 }
 
@@ -143,8 +144,9 @@ String getTelemetry() {
 void requestConfig() {
   UniversalTelegramBot *pBot = getBot();
   if(pBot != NULL) {  
-    String sMsg = "*DeviceID*: " + ArduinoOTA.getHostname() + " started. Request Configuration."; 
+    String sMsg = "*DeviceID*: " + ArduinoOTA.getHostname() + " started. Request Configuration. \n\n/config, /telemetry"; 
     pBot->sendMessage(OM_TG_ID, sMsg, "Markdown");
+    pBot->sendMessage(OM_TG_ID, getConfig(), "Markdown");  
   } else 
     Serial.println("Internal Error: void danLogicHandle()");
 }
@@ -152,8 +154,8 @@ void requestConfig() {
 String getConfig() {
   String sConf = "*DeviceID*: " + ArduinoOTA.getHostname() + 
                "\n*Telemetry*: " + getReadableTime(lInterval) +
-               "\n*Switch 01*: " + getReadableTime(lSwitch01_interval) + 
-               "\n*Switch 02*: " + getReadableTime(lSwitch02_interval);
+               "\n*Switch 01* runs every: " + getReadableTime(lSwitch01_interval) + " min during " + getReadableTime(lSwitch01_run) + " sec" + 
+               "\n*Switch 02* runs every: " + getReadableTime(lSwitch02_interval) + " hours during " + getReadableTime(lSwitch02_run) + " sec";
   return sConf;
 }
 
